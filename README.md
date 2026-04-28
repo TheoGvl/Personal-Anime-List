@@ -27,3 +27,15 @@ AnimeVault is a modern, full-stack Single Page Application (SPA) designed to hel
    ```
    pip install flask flask-cors flask-sqlalchemy
    ```
+Start the Backend Server:
+Navigate to the project folder in your terminal and run:
+
+```
+python app.py
+```
+The server will start locally on http://127.0.0.1:5000
+
+Launch the Interface:
+Simply double-click the index.html file to open it in your web browser.
+
+Note: Because this project is evolving rapidly, you may occasionally need to delete the animelist.db file and restart the Python server to apply new database schemas.
