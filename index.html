@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Modern Anime List</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+    <nav>
+        <div class="logo">Anime<span>Vault</span></div>
+        <div class="nav-links">
+            <a href="#" onclick="showView('home')">Home</a>
+            <a href="#" onclick="loadProfile()">My Profile</a>
+        </div>
+    </nav>
+
+    <div id="home-view" class="view-section active">
+        <div class="search-container">
+            <input type="text" id="searchInput" placeholder="Search for Anime (e.g., Jujutsu Kaisen, Bleach)...">
+            <button onclick="searchAnime()">Search</button>
+        </div>
+        
+        <div id="search-results-container" style="display: none;">
+            <h2 id="search-title" class="section-title">🔍 Search Results</h2>
+            <div id="results-search" class="anime-grid"></div>
+            <br><br>
+        </div>
+
+        <h2 class="section-title">🔥 Top Airing Anime</h2>
+        <div id="results-airing" class="anime-grid"></div>
+        <br><br>
+
+        <h2 class="section-title">🏆 Top Rated Anime</h2>
+        <div id="results-top" class="anime-grid"></div>
+        <br><br>
+
+        <h2 class="section-title">⭐ Most Popular All-Time</h2>
+        <div id="results-popular" class="anime-grid"></div>
+    </div>
+
+    <div id="profile-view" class="view-section">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+            <h2 class="section-title" style="margin-bottom: 0;">👤 My Anime List</h2>
+            <div class="import-section">
+                <input type="file" id="malXmlFile" accept=".xml" style="display: none;" onchange="importMAL()">
+                <button class="import-btn" onclick="document.getElementById('malXmlFile').click()">📁 Import MAL XML</button>
+            </div>
+        </div>
+        
+        <div class="tab-buttons">
+            <button class="tab-btn active" onclick="switchTab('watching', this)">📺 Watching</button>
+            <button class="tab-btn" onclick="switchTab('completed', this)">✅ Completed</button>
+            <button class="tab-btn" onclick="switchTab('plan', this)">📅 Plan to Watch</button>
+            <button class="tab-btn" onclick="switchTab('dropped', this)">🗑️ Dropped</button>
+        </div>
+
+        <div id="tab-watching" class="anime-grid tab-content active"></div>
+        <div id="tab-completed" class="anime-grid tab-content"></div>
+        <div id="tab-plan" class="anime-grid tab-content"></div>
+        <div id="tab-dropped" class="anime-grid tab-content"></div>
+    </div>
+
+    <div id="animeModal" class="modal">
+        <div class="modal-content">
+            <span class="close-btn" onclick="closeModal()">&times;</span>
+            <div class="modal-body">
+                <img id="modalImg" src="" alt="Poster">
+                <div class="modal-info">
+                    <h2 id="modalTitle">Title</h2>
+                    <p class="modal-synopsis" id="modalSynopsis">Loading details...</p>
+                    
+                    <div class="mal-details-grid">
+                        <div class="mal-info-col">
+                            <h3>Information</h3>
+                            <p><strong>Type:</strong> <span id="dt-type">-</span></p>
+                            <p><strong>Episodes:</strong> <span id="dt-episodes">-</span></p>
+                            <p><strong>Status:</strong> <span id="dt-status">-</span></p>
+                            <p><strong>Aired:</strong> <span id="dt-aired">-</span></p>
+                            <p><strong>Premiered:</strong> <span id="dt-premiered">-</span></p>
+                            <p><strong>Broadcast:</strong> <span id="dt-broadcast">-</span></p>
+                            <p><strong>Producers:</strong> <span id="dt-producers">-</span></p>
+                            <p><strong>Licensors:</strong> <span id="dt-licensors">-</span></p>
+                            <p><strong>Studios:</strong> <span id="dt-studios">-</span></p>
+                            <p><strong>Source:</strong> <span id="dt-source">-</span></p>
+                            <p><strong>Genre:</strong> <span id="dt-genres">-</span></p>
+                            <p><strong>Demographic:</strong> <span id="dt-demographics">-</span></p>
+                            <p><strong>Duration:</strong> <span id="dt-duration">-</span></p>
+                            <p><strong>Rating:</strong> <span id="dt-rating">-</span></p>
+                        </div>
+                        <div class="mal-stats-col">
+                            <h3>Statistics</h3>
+                            <p><strong>Score:</strong> <span id="dt-score">-</span></p>
+                            <p><strong>Ranked:</strong> <span id="dt-ranked">-</span></p>
+                            <p><strong>Popularity:</strong> <span id="dt-popularity">-</span></p>
+                            <p><strong>Members:</strong> <span id="dt-members">-</span></p>
+                            <p><strong>Favorites:</strong> <span id="dt-favorites">-</span></p>
+                        </div>
+                    </div>
+
+                    <div class="modal-actions">
+                        <div class="actions-grid">
+                            <div class="input-group">
+                                <label>Status:</label>
+                                <select id="modalStatus" class="status-select">
+                                    <option value="Watching">Watching</option>
+                                    <option value="Completed">Completed</option>
+                                    <option value="Plan to Watch" selected>Plan to Watch</option>
+                                    <option value="Dropped">Dropped</option>
+                                </select>
+                            </div>
+                            <div class="input-group">
+                                <label>Episodes:</label>
+                                <div class="episodes-input-container">
+                                    <input type="number" id="modalEpWatched" min="0" placeholder="0">
+                                    <span id="modalEpTotalText">/ -</span>
+                                </div>
+                            </div>
+                            <div class="input-group">
+                                <label>My Score (1-10):</label>
+                                <input type="number" id="modalPersonalScore" min="1" max="10" placeholder="-">
+                            </div>
+                            <div class="input-group">
+                                <label>Times Rewatched:</label>
+                                <input type="number" id="modalTimesWatched" min="0" placeholder="0">
+                            </div>
+                        </div>
+
+                        <div class="extra-inputs">
+                            <div class="dates-row">
+                                <div class="input-group-small">
+                                    <label>Start Date:</label>
+                                    <input type="date" id="modalStartDate">
+                                </div>
+                                <div class="input-group-small">
+                                    <label>Finish Date:</label>
+                                    <input type="date" id="modalFinishDate">
+                                </div>
+                            </div>
+                            <input type="text" id="modalTags" class="text-input full-width" placeholder="Tags (comma separated)">
+                            <textarea id="modalComments" class="text-input full-width" placeholder="Personal Comments..." rows="2"></textarea>
+                        </div>
+
+                        <button id="modalSaveBtn" class="save-btn">💾 Save to My List</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="script.js" defer></script>
+</body>
+</html>
