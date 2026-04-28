@@ -21,8 +21,7 @@ AnimeVault is a modern, full-stack Single Page Application (SPA) designed to hel
 * **External APIs:** Jikan REST API v4.
 
 ## How to Run Locally
-
-1. **Install Dependencies:**
+ **Install Dependencies:**
    Ensure you have Python installed, then run:
    ```
    pip install flask flask-cors flask-sqlalchemy
