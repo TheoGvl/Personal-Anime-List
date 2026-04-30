@@ -1,29 +1,54 @@
 # AnimeVault
 
-AnimeVault is a modern, full-stack Single Page Application (SPA) designed to help you track your anime journey. It features a sleek, dark-themed UI with synthwave/cyberpunk accents and integrates directly with the [Jikan API](https://jikan.moe/) to fetch real-time anime data, top charts, and statistics.
-
 > **DEVELOPMENT NOTICE**
-> **This project is currently under active development. The codebase, features, and database structures are being updated frequently. Expect frequent commits, architectural changes, and database resets as new features are added.**
+> **This project is a living application and is currently under active continuous development. The codebase, features, and UI are constantly evolving. Expect frequent updates, new tools, and structural improvements as the site continues to grow!**
 
-## Current Features
+AnimeVault is a modern, feature-rich Single Page Application (SPA) designed for anime enthusiasts to discover, track, and manage their anime journey. Powered by a Python/Flask backend and an interactive JavaScript frontend, it integrates seamlessly with the [Jikan API](https://jikan.moe/) (MyAnimeList) to provide real-time data, deep statistics, and a beautiful user experience.
 
-* **Dynamic Home Screen:** Browse Top Airing, Top Rated, and Most Popular anime directly from the Jikan API.
-* **Live Search:** Search the entire MyAnimeList database instantly.
-* **Personal Tracker:** Save anime to your profile and track your episodes, personal scores, and rewatches.
-* **MAL XML Import:** Import your official `animelist.xml` from MyAnimeList. The app will automatically read your data and integrate it into the local database.
-* **Smart Details Modal:** Click on any anime card to fetch and display deep statistics studios, genres, broadcast time, global score directly from the API.
+## Key Features
+
+### Discovery & Search
+* **Dynamic Home Dashboard:** Instantly browse Top Airing, Top Rated, and Most Popular anime of all time.
+* **Advanced Search:** Filter the massive MyAnimeList database by keyword, specific Genres, and Year of release.
+* **Pagination:** Seamlessly browse through hundreds of search results with the "Load More" functionality.
+
+### Personal Anime Tracker
+* **Detailed List Management:** Organize your anime into Watching, Completed, Plan to Watch, and Dropped categories.
+* **Comprehensive Tracking:** Log your watched episodes, personal score, times rewatched, start/finish dates, custom tags, and personal comments.
+* **Smart Sorting:** Sort your personal list by Date Added, Personal Score, or alphabetically by Title.
+* **Deep Statistics Modal:** Click on any anime to view its global MAL score, rank, popularity, studios, genres, broadcast time, and full synopsis.
+
+### Customization & Settings
+* **Theming System:** Personalize your interface with 4 unique color palettes:
+  * Cyberpunk (Dark Purple & Pink)
+  * Classic MAL (Navy & Light Blue)
+  * OLED Dark (True Black & Gold)
+  * Forest (Dark Green & Mint)
+* **SFW Filter:** Toggle a Safe-For-Work mode to hide 18+/explicit content from your home feed and searches.
+* **Profile Preferences:** Choose which category tab (e.g., "Watching" or "Completed") opens by default when you view your profile.
+* *All preferences are saved locally in your browser so your experience is always exactly how you left it.*
+
+### MAL XML Integration
+* **Easy Migration:** Import your official `animelist.xml` export from MyAnimeList directly into AnimeVault. The app intelligently parses your history and integrates it into your local database, fetching missing images and data on-demand.
+
+## Future Development 
+AnimeVault is constantly improving. Here is a sneak peek at what is planned for future updates:
+* **User Accounts & Authentication:** Support for multiple users with private, secure logins and independent lists.
+* **Database Migrations:** Seamless backend updates utilizing Alembic/Flask-Migrate so you never have to reset your database when new features drop.
+* **Stats Dashboard:** Visual charts and graphs breaking down your watch history, favorite genres, and total days watched.
+* **Smart Recommendations:** Personalized anime suggestions based on your highly-rated shows.
 
 ## Tech Stack
 
-* **Frontend:** Vanilla HTML5, CSS3 (Modern CSS Grid/Flexbox), and JavaScript (ES6+).
-* **Backend:** Python 3, Flask, Flask-SQLAlchemy, Flask-CORS.
-* **Database:** SQLite.
+* **Frontend:** Vanilla HTML5, CSS3 (Modern Flexbox/Grid, CSS Variables), Vanilla JavaScript (ES6+ with Async/Await, LocalStorage).
+* **Backend:** Python 3, Flask, Flask-SQLAlchemy (SQLite database), Flask-CORS, XML ElementTree.
 * **External APIs:** Jikan REST API v4.
 
 ## How to Run Locally
+
  **Install Dependencies:**
-   Ensure you have Python installed, then run:
-   ```
+   Ensure you have Python installed, then run the following in your terminal:
+   ```bash
    pip install flask flask-cors flask-sqlalchemy
    ```
 Start the Backend Server:
