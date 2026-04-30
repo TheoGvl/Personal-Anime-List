@@ -13,18 +13,32 @@
         <div class="nav-links">
             <a href="#" onclick="showView('home')">Home</a>
             <a href="#" onclick="loadProfile()">My Profile</a>
+            <a href="#" onclick="showView('settings')">⚙️ Settings</a>
         </div>
     </nav>
 
+    <!-- HOME VIEW -->
     <div id="home-view" class="view-section active">
-        <div class="search-container">
-            <input type="text" id="searchInput" placeholder="Search for Anime (e.g., Jujutsu Kaisen, Bleach)...">
-            <button onclick="searchAnime()">Search</button>
+        <div class="advanced-search-container">
+            <input type="text" id="searchInput" placeholder="Search for Anime...">
+            <select id="genreFilter" class="search-select">
+                <option value="">All Genres</option>
+                <option value="1">Action</option>
+                <option value="4">Comedy</option>
+                <option value="8">Drama</option>
+                <option value="10">Fantasy</option>
+                <option value="22">Romance</option>
+                <option value="24">Sci-Fi</option>
+                <option value="27">Shounen</option>
+            </select>
+            <input type="number" id="yearFilter" class="search-input-small" placeholder="Year (e.g. 2023)">
+            <button onclick="triggerSearch()">Search</button>
         </div>
         
         <div id="search-results-container" style="display: none;">
             <h2 id="search-title" class="section-title">🔍 Search Results</h2>
             <div id="results-search" class="anime-grid"></div>
+            <button id="loadMoreBtn" class="load-more-btn" style="display: none;" onclick="loadMoreSearch()">⬇️ Load More Results</button>
             <br><br>
         </div>
 
@@ -40,20 +54,30 @@
         <div id="results-popular" class="anime-grid"></div>
     </div>
 
+    <!-- PROFILE VIEW -->
     <div id="profile-view" class="view-section">
-        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; flex-wrap: wrap; gap: 15px;">
             <h2 class="section-title" style="margin-bottom: 0;">👤 My Anime List</h2>
-            <div class="import-section">
+            
+            <div class="profile-controls">
+                <div class="sort-container">
+                    <label for="profileSort">Sort by:</label>
+                    <select id="profileSort" class="status-select" onchange="loadProfile(false)">
+                        <option value="newest">Date Added (Newest)</option>
+                        <option value="score">My Score (High to Low)</option>
+                        <option value="title">Title (A-Z)</option>
+                    </select>
+                </div>
                 <input type="file" id="malXmlFile" accept=".xml" style="display: none;" onchange="importMAL()">
                 <button class="import-btn" onclick="document.getElementById('malXmlFile').click()">📁 Import MAL XML</button>
             </div>
         </div>
         
         <div class="tab-buttons">
-            <button class="tab-btn active" onclick="switchTab('watching', this)">📺 Watching</button>
-            <button class="tab-btn" onclick="switchTab('completed', this)">✅ Completed</button>
-            <button class="tab-btn" onclick="switchTab('plan', this)">📅 Plan to Watch</button>
-            <button class="tab-btn" onclick="switchTab('dropped', this)">🗑️ Dropped</button>
+            <button id="tab-btn-watching" class="tab-btn active" onclick="switchTab('watching', this)">📺 Watching</button>
+            <button id="tab-btn-completed" class="tab-btn" onclick="switchTab('completed', this)">✅ Completed</button>
+            <button id="tab-btn-plan" class="tab-btn" onclick="switchTab('plan', this)">📅 Plan to Watch</button>
+            <button id="tab-btn-dropped" class="tab-btn" onclick="switchTab('dropped', this)">🗑️ Dropped</button>
         </div>
 
         <div id="tab-watching" class="anime-grid tab-content active"></div>
@@ -62,6 +86,40 @@
         <div id="tab-dropped" class="anime-grid tab-content"></div>
     </div>
 
+    <!-- SETTINGS VIEW -->
+    <div id="settings-view" class="view-section">
+        <h2 class="section-title">⚙️ App Preferences</h2>
+        <div class="settings-container">
+            <div class="setting-group">
+                <label>Color Theme</label>
+                <select id="set-theme" onchange="applySettings()">
+                    <option value="cyberpunk">Cyberpunk (Dark Purple & Pink)</option>
+                    <option value="classic">Classic MAL (Navy Blue & Light Blue)</option>
+                    <option value="oled">OLED Dark (True Black & Gold)</option>
+                    <option value="forest">Forest (Dark Green & Mint)</option>
+                </select>
+            </div>
+            <div class="setting-group">
+                <label>Safe For Work (SFW) Filter</label>
+                <select id="set-sfw" onchange="applySettings()">
+                    <option value="true">Enabled (Hide Explicit Content)</option>
+                    <option value="false">Disabled (Show Everything)</option>
+                </select>
+                <small style="color: var(--text-muted); font-size: 12px; margin-top: 5px;">Hides 18+ content from home screen and search results.</small>
+            </div>
+            <div class="setting-group">
+                <label>Default Profile Tab</label>
+                <select id="set-tab" onchange="applySettings()">
+                    <option value="watching">Watching</option>
+                    <option value="completed">Completed</option>
+                    <option value="plan">Plan to Watch</option>
+                    <option value="dropped">Dropped</option>
+                </select>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL FOR ANIME DETAILS & SAVING -->
     <div id="animeModal" class="modal">
         <div class="modal-content">
             <span class="close-btn" onclick="closeModal()">&times;</span>

@@ -1,22 +1,78 @@
 let currentAnimeData = {};
 let mySavedAnime = {};
+let currentSearchPage = 1;
+let isSearching = false;
+
+// Settings State
+let userSettings = {
+    theme: 'cyberpunk',
+    sfw: 'true',
+    defaultTab: 'watching'
+};
+
+const themeColors = {
+    cyberpunk: { '--bg-dark': '#12091c', '--bg-card': '#201335', '--border-color': '#3b2259', '--accent-color': '#ff4da6' },
+    classic: { '--bg-dark': '#0b1622', '--bg-card': '#151f2e', '--border-color': '#2a3b4e', '--accent-color': '#3db4f2' },
+    oled: { '--bg-dark': '#000000', '--bg-card': '#111111', '--border-color': '#333333', '--accent-color': '#f5c518' },
+    forest: { '--bg-dark': '#0a1710', '--bg-card': '#12261a', '--border-color': '#1e3d2a', '--accent-color': '#4ade80' }
+};
 
 window.onload = async () => {
+    loadSettings(); // Initialize colors & preferences first
     await fetchProfileData();
     loadHomeData();           
 };
+
+// --- SETTINGS LOGIC ---
+function loadSettings() {
+    const saved = localStorage.getItem('animeVaultSettings');
+    if (saved) {
+        userSettings = JSON.parse(saved);
+    }
+    
+    // Update Dropdowns in UI
+    document.getElementById('set-theme').value = userSettings.theme;
+    document.getElementById('set-sfw').value = userSettings.sfw;
+    document.getElementById('set-tab').value = userSettings.defaultTab;
+
+    applyThemeColors();
+}
+
+function applySettings() {
+    userSettings.theme = document.getElementById('set-theme').value;
+    userSettings.sfw = document.getElementById('set-sfw').value;
+    userSettings.defaultTab = document.getElementById('set-tab').value;
+    
+    localStorage.setItem('animeVaultSettings', JSON.stringify(userSettings));
+    applyThemeColors();
+    
+    // Refresh Data to apply SFW filter immediately
+    if (document.getElementById('home-view').classList.contains('active')) {
+        loadHomeData();
+    }
+}
+
+function applyThemeColors() {
+    const colors = themeColors[userSettings.theme];
+    for (let key in colors) {
+        document.documentElement.style.setProperty(key, colors[key]);
+    }
+}
 
 // --- VIEW & TAB NAVIGATION ---
 function showView(viewId) {
     document.getElementById('home-view').classList.remove('active');
     document.getElementById('profile-view').classList.remove('active');
+    document.getElementById('settings-view').classList.remove('active');
     document.getElementById(`${viewId}-view`).classList.add('active');
 }
 
 function switchTab(tabId, btnElement) {
+    if (!btnElement) btnElement = document.getElementById(`tab-btn-${tabId}`);
+    
     document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
     document.querySelectorAll('.tab-content').forEach(tab => tab.classList.remove('active'));
-    btnElement.classList.add('active');
+    if (btnElement) btnElement.classList.add('active');
     document.getElementById(`tab-${tabId}`).classList.add('active');
 }
 
@@ -34,56 +90,120 @@ async function fetchProfileData() {
     }
 }
 
+// Η Διορθωμένη συνάρτηση για την Αρχική Σελίδα
 async function loadHomeData() {
     try {
-        const resAiring = await fetch('https://api.jikan.moe/v4/top/anime?filter=airing&limit=24');
+        const sfwParam = userSettings.sfw === 'true' ? '&sfw=true' : '';
+
+        // 1. Φόρτωση Airing
+        const resAiring = await fetch(`https://api.jikan.moe/v4/top/anime?filter=airing&limit=24${sfwParam}`);
         const dataAiring = await resAiring.json();
         renderCards(dataAiring.data, document.getElementById('results-airing'));
 
-        const resTop = await fetch('https://api.jikan.moe/v4/top/anime?limit=24');
+        // Μικρή παύση μισού δευτερολέπτου (Rate Limit prevention)
+        await new Promise(resolve => setTimeout(resolve, 500));
+
+        // 2. Φόρτωση Top Rated
+        const resTop = await fetch(`https://api.jikan.moe/v4/top/anime?limit=24${sfwParam}`);
         const dataTop = await resTop.json();
         renderCards(dataTop.data, document.getElementById('results-top'));
 
-        const resPopular = await fetch('https://api.jikan.moe/v4/top/anime?filter=bypopularity&limit=24');
+        // Ακόμα μία μικρή παύση
+        await new Promise(resolve => setTimeout(resolve, 500));
+
+        // 3. Φόρτωση Popular
+        const resPopular = await fetch(`https://api.jikan.moe/v4/top/anime?filter=bypopularity&limit=24${sfwParam}`);
         const dataPopular = await resPopular.json();
         renderCards(dataPopular.data, document.getElementById('results-popular'));
+        
     } catch (e) {
-        console.error("Error loading home categories.");
+        console.error("Error loading home categories:", e);
     }
 }
 
-async function searchAnime() {
+async function triggerSearch() {
+    currentSearchPage = 1;
+    document.getElementById('results-search').innerHTML = ''; 
+    await executeSearch();
+}
+
+async function loadMoreSearch() {
+    currentSearchPage++;
+    await executeSearch();
+}
+
+async function executeSearch() {
+    if (isSearching) return;
+    isSearching = true;
+
     const query = document.getElementById('searchInput').value.trim();
-    if (!query) return;
+    const genre = document.getElementById('genreFilter').value;
+    const year = document.getElementById('yearFilter').value;
+
+    let url = `https://api.jikan.moe/v4/anime?page=${currentSearchPage}&limit=24`;
+    if (query) url += `&q=${query}`;
+    if (genre) url += `&genres=${genre}`;
+    if (year) {
+        url += `&start_date=${year}-01-01&end_date=${year}-12-31`;
+    }
+    if (userSettings.sfw === 'true') url += '&sfw=true';
 
     const resultsDiv = document.getElementById('results-search');
     const searchContainer = document.getElementById('search-results-container');
+    const loadMoreBtn = document.getElementById('loadMoreBtn');
     
-    document.getElementById('search-title').innerText = `🔍 Search Results for "${query}"`;
+    document.getElementById('search-title').innerText = `🔍 Search Results`;
     searchContainer.style.display = 'block';
-    resultsDiv.innerHTML = '<p>Searching...</p>';
+    
+    if (currentSearchPage === 1) resultsDiv.innerHTML = '<p>Searching...</p>';
+    else loadMoreBtn.innerText = 'Loading...';
 
     try {
-        const response = await fetch(`https://api.jikan.moe/v4/anime?q=${query}&limit=24`);
+        const response = await fetch(url);
         const data = await response.json();
-        renderCards(data.data, resultsDiv);
+        
+        if (currentSearchPage === 1) resultsDiv.innerHTML = ''; 
+        
+        if (data.data.length === 0 && currentSearchPage === 1) {
+            resultsDiv.innerHTML = '<p>No anime found matching your criteria.</p>';
+            loadMoreBtn.style.display = 'none';
+        } else {
+            renderCards(data.data, resultsDiv, true); 
+            
+            if (data.pagination && data.pagination.has_next_page) {
+                loadMoreBtn.style.display = 'block';
+                loadMoreBtn.innerText = '⬇️ Load More Results';
+            } else {
+                loadMoreBtn.style.display = 'none';
+            }
+        }
     } catch (e) {
-        resultsDiv.innerHTML = '<p style="color:red;">Error fetching data.</p>';
+        if (currentSearchPage === 1) resultsDiv.innerHTML = '<p style="color:red;">Error fetching data.</p>';
+        loadMoreBtn.innerText = '⬇️ Load More Results';
     }
+    
+    isSearching = false;
 }
 
-function renderCards(animeArray, container) {
-    container.innerHTML = '';
+function renderCards(animeArray, container, append = false) {
+    if (!append) container.innerHTML = '';
+    
+    if (!animeArray) return; // Safety check in case API fails
+    
     animeArray.forEach(anime => {
         currentAnimeData[anime.mal_id] = anime;
         const card = document.createElement('div');
         card.className = 'anime-card';
         card.onclick = () => openModal(anime.mal_id);
+        
         const totalEps = anime.episodes ? anime.episodes : '-';
+        const globalScore = anime.score ? `⭐ ${anime.score}` : '⭐ N/A';
+        
         card.innerHTML = `
             <img src="${anime.images.jpg.large_image_url}" alt="poster">
             <div class="card-content">
                 <div class="title">${anime.title}</div>
+                <div class="user-rating">${globalScore}</div>
                 <div class="ep-count">Episodes: ${totalEps}</div>
             </div>
         `;
@@ -91,16 +211,33 @@ function renderCards(animeArray, container) {
     });
 }
 
-async function loadProfile() {
+// --- PROFILE LOGIC ---
+async function loadProfile(initialLoad = true) {
     await fetchProfileData();
     showView('profile');
+    
+    // Jump to preferred tab on first click
+    if (initialLoad) {
+        switchTab(userSettings.defaultTab);
+    }
     
     document.getElementById('tab-watching').innerHTML = '';
     document.getElementById('tab-completed').innerHTML = '';
     document.getElementById('tab-plan').innerHTML = '';
     document.getElementById('tab-dropped').innerHTML = '';
 
-    Object.values(mySavedAnime).forEach(anime => {
+    const sortBy = document.getElementById('profileSort').value;
+    let animeList = Object.values(mySavedAnime);
+
+    if (sortBy === 'newest') {
+        animeList.sort((a, b) => b.id - a.id); 
+    } else if (sortBy === 'score') {
+        animeList.sort((a, b) => (b.personal_score || 0) - (a.personal_score || 0));
+    } else if (sortBy === 'title') {
+        animeList.sort((a, b) => a.title.localeCompare(b.title));
+    }
+
+    animeList.forEach(anime => {
         if (!currentAnimeData[anime.anime_id]) {
             currentAnimeData[anime.anime_id] = {
                 mal_id: anime.anime_id,
@@ -138,7 +275,6 @@ async function loadProfile() {
     });
 }
 
-// --- MAL XML IMPORT ---
 async function importMAL() {
     const fileInput = document.getElementById('malXmlFile');
     if (!fileInput.files.length) return;
@@ -158,16 +294,15 @@ async function importMAL() {
         });
         const result = await res.json();
         alert(result.message);
-        loadProfile(); 
+        loadProfile(false); 
     } catch (e) {
         alert('❌ Error importing file. Ensure the Python backend is running.');
-        loadProfile();
+        loadProfile(false);
     }
 }
 
 const mapNames = arr => arr && arr.length > 0 ? arr.map(a => a.name).join(', ') : 'None found';
 
-// --- MODAL LOGIC ---
 async function openModal(mal_id) {
     document.getElementById('animeModal').style.display = 'block';
     let anime = currentAnimeData[mal_id];
@@ -252,7 +387,6 @@ document.getElementById('modalStatus').addEventListener('change', function() {
     }
 });
 
-// --- SAVE ACTION ---
 async function saveFromModal(mal_id) {
     const anime = currentAnimeData[mal_id];
     
@@ -287,9 +421,13 @@ async function saveFromModal(mal_id) {
         if(res.ok) {
             alert('✅ Saved successfully!');
             closeModal();
-            fetchProfileData(); 
+            mySavedAnime[mal_id] = mySavedAnime[mal_id] || {};
+            mySavedAnime[mal_id].status = status;
+            mySavedAnime[mal_id].personal_score = score;
+            mySavedAnime[mal_id].episodes_watched = epWatched;
+            
             if (document.getElementById('profile-view').classList.contains('active')) {
-                loadProfile();
+                loadProfile(false); 
             }
         } else {
             alert('❌ Failed to save.');
@@ -312,6 +450,6 @@ window.onclick = function(event) {
 document.getElementById("searchInput").addEventListener("keypress", function(event) {
     if (event.key === "Enter") {
         event.preventDefault();
-        searchAnime();
+        triggerSearch();
     }
 });
