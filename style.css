@@ -20,6 +20,10 @@ nav { display: flex; justify-content: space-between; align-items: center; paddin
 .view-section.active { display: block; }
 .section-title { margin-bottom: 20px; font-size: 22px; border-left: 4px solid var(--accent-color); padding-left: 10px; transition: border-color 0.3s ease;}
 
+/* Collapsible Headers */
+.collapsible { cursor: pointer; user-select: none; transition: 0.2s; }
+.collapsible:hover { color: var(--accent-color); }
+
 /* Advanced Search */
 .advanced-search-container { display: flex; gap: 10px; margin-bottom: 40px; max-width: 800px; margin: 0 auto 40px auto; flex-wrap: wrap; }
 .advanced-search-container input[type="text"] { flex: 2; min-width: 200px; }
@@ -103,3 +107,4 @@ button:hover { filter: brightness(1.2); box-shadow: 0 0 10px rgba(0,0,0,0.5); }
 textarea { resize: vertical; }
 
 .save-btn { background: var(--accent-color); color: white; padding: 12px; border-radius: 5px; cursor: pointer; font-size: 15px; border: none; width: 100%; font-weight: bold; margin-top: 10px; transition: 0.2s; }
+.save-btn:hover { background: #ff3399; box-shadow: 0 0 10px rgba(255, 77, 166, 0.5); }

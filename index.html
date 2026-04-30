@@ -12,6 +12,7 @@
         <div class="logo">Anime<span>Vault</span></div>
         <div class="nav-links">
             <a href="#" onclick="showView('home')">Home</a>
+            <a href="#" onclick="showView('seasonal')">Seasonal</a>
             <a href="#" onclick="loadProfile()">My Profile</a>
             <a href="#" onclick="showView('settings')">⚙️ Settings</a>
         </div>
@@ -52,6 +53,20 @@
 
         <h2 class="section-title">⭐ Most Popular All-Time</h2>
         <div id="results-popular" class="anime-grid"></div>
+    </div>
+
+    <!-- SEASONAL VIEW (Now Collapsible) -->
+    <div id="seasonal-view" class="view-section">
+        <h2 class="section-title collapsible" onclick="toggleSeason('last', this)">▶ ⏪ Last Season</h2>
+        <div id="results-last-season" class="anime-grid" style="display: none;"></div>
+        <br>
+
+        <h2 class="section-title collapsible" onclick="toggleSeason('this', this)">▶ 📺 This Season</h2>
+        <div id="results-this-season" class="anime-grid" style="display: none;"></div>
+        <br>
+
+        <h2 class="section-title collapsible" onclick="toggleSeason('next', this)">▶ ⏩ Next Season</h2>
+        <div id="results-next-season" class="anime-grid" style="display: none;"></div>
     </div>
 
     <!-- PROFILE VIEW -->

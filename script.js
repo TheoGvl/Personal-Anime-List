@@ -3,6 +3,9 @@ let mySavedAnime = {};
 let currentSearchPage = 1;
 let isSearching = false;
 
+// Tracker for which seasonal lists have been fetched
+let loadedSeasons = { last: false, this: false, next: false };
+
 // Settings State
 let userSettings = {
     theme: 'cyberpunk',
@@ -18,7 +21,7 @@ const themeColors = {
 };
 
 window.onload = async () => {
-    loadSettings(); // Initialize colors & preferences first
+    loadSettings(); 
     await fetchProfileData();
     loadHomeData();           
 };
@@ -30,7 +33,6 @@ function loadSettings() {
         userSettings = JSON.parse(saved);
     }
     
-    // Update Dropdowns in UI
     document.getElementById('set-theme').value = userSettings.theme;
     document.getElementById('set-sfw').value = userSettings.sfw;
     document.getElementById('set-tab').value = userSettings.defaultTab;
@@ -46,10 +48,15 @@ function applySettings() {
     localStorage.setItem('animeVaultSettings', JSON.stringify(userSettings));
     applyThemeColors();
     
-    // Refresh Data to apply SFW filter immediately
     if (document.getElementById('home-view').classList.contains('active')) {
         loadHomeData();
     }
+    
+    // If SFW is toggled, reset the seasonal cache so it re-fetches cleanly next time opened
+    loadedSeasons = { last: false, this: false, next: false };
+    document.getElementById('results-last-season').innerHTML = '';
+    document.getElementById('results-this-season').innerHTML = '';
+    document.getElementById('results-next-season').innerHTML = '';
 }
 
 function applyThemeColors() {
@@ -64,6 +71,8 @@ function showView(viewId) {
     document.getElementById('home-view').classList.remove('active');
     document.getElementById('profile-view').classList.remove('active');
     document.getElementById('settings-view').classList.remove('active');
+    document.getElementById('seasonal-view').classList.remove('active');
+    
     document.getElementById(`${viewId}-view`).classList.add('active');
 }
 
@@ -90,28 +99,22 @@ async function fetchProfileData() {
     }
 }
 
-// Η Διορθωμένη συνάρτηση για την Αρχική Σελίδα
 async function loadHomeData() {
     try {
         const sfwParam = userSettings.sfw === 'true' ? '&sfw=true' : '';
 
-        // 1. Φόρτωση Airing
         const resAiring = await fetch(`https://api.jikan.moe/v4/top/anime?filter=airing&limit=24${sfwParam}`);
         const dataAiring = await resAiring.json();
         renderCards(dataAiring.data, document.getElementById('results-airing'));
 
-        // Μικρή παύση μισού δευτερολέπτου (Rate Limit prevention)
         await new Promise(resolve => setTimeout(resolve, 500));
 
-        // 2. Φόρτωση Top Rated
         const resTop = await fetch(`https://api.jikan.moe/v4/top/anime?limit=24${sfwParam}`);
         const dataTop = await resTop.json();
         renderCards(dataTop.data, document.getElementById('results-top'));
 
-        // Ακόμα μία μικρή παύση
         await new Promise(resolve => setTimeout(resolve, 500));
 
-        // 3. Φόρτωση Popular
         const resPopular = await fetch(`https://api.jikan.moe/v4/top/anime?filter=bypopularity&limit=24${sfwParam}`);
         const dataPopular = await resPopular.json();
         renderCards(dataPopular.data, document.getElementById('results-popular'));
@@ -121,6 +124,67 @@ async function loadHomeData() {
     }
 }
 
+// --- SEASONAL COLLAPSIBLE LOGIC ---
+async function toggleSeason(seasonType, headerElement) {
+    const grid = document.getElementById(`results-${seasonType}-season`);
+
+    if (grid.style.display === 'none' || grid.style.display === '') {
+        // Expand
+        grid.style.display = 'grid';
+        headerElement.innerHTML = headerElement.innerHTML.replace('▶', '▼');
+
+        // Only fetch if we haven't loaded it yet
+        if (!loadedSeasons[seasonType]) {
+            await fetchSpecificSeason(seasonType, grid);
+            loadedSeasons[seasonType] = true;
+        }
+    } else {
+        // Collapse
+        grid.style.display = 'none';
+        headerElement.innerHTML = headerElement.innerHTML.replace('▼', '▶');
+    }
+}
+
+async function fetchSpecificSeason(seasonType, container) {
+    container.innerHTML = '<p style="grid-column: 1 / -1;">Fetching seasonal anime...</p>';
+    const sfwParam = userSettings.sfw === 'true' ? '&sfw=true' : '';
+    let url = '';
+
+    try {
+        if (seasonType === 'this') {
+            url = `https://api.jikan.moe/v4/seasons/now?limit=24${sfwParam}`;
+        } else if (seasonType === 'next') {
+            url = `https://api.jikan.moe/v4/seasons/upcoming?limit=24${sfwParam}`;
+        } else if (seasonType === 'last') {
+            const month = new Date().getMonth() + 1;
+            let year = new Date().getFullYear();
+            let currentSeason = '';
+            
+            if (month >= 1 && month <= 3) currentSeason = 'winter';
+            else if (month >= 4 && month <= 6) currentSeason = 'spring';
+            else if (month >= 7 && month <= 9) currentSeason = 'summer';
+            else currentSeason = 'fall';
+
+            let prevSeason = '';
+            if (currentSeason === 'winter') { prevSeason = 'fall'; year -= 1; }
+            else if (currentSeason === 'spring') { prevSeason = 'winter'; }
+            else if (currentSeason === 'summer') { prevSeason = 'spring'; }
+            else { prevSeason = 'summer'; }
+
+            url = `https://api.jikan.moe/v4/seasons/${year}/${prevSeason}?limit=24${sfwParam}`;
+        }
+
+        const res = await fetch(url);
+        const data = await res.json();
+        renderCards(data.data, container);
+
+    } catch (e) {
+        console.error(`Error loading ${seasonType} season:`, e);
+        container.innerHTML = '<p style="color:red; grid-column: 1 / -1;">Error loading data.</p>';
+    }
+}
+
+// --- ADVANCED SEARCH & PAGINATION ---
 async function triggerSearch() {
     currentSearchPage = 1;
     document.getElementById('results-search').innerHTML = ''; 
@@ -188,7 +252,7 @@ async function executeSearch() {
 function renderCards(animeArray, container, append = false) {
     if (!append) container.innerHTML = '';
     
-    if (!animeArray) return; // Safety check in case API fails
+    if (!animeArray) return;
     
     animeArray.forEach(anime => {
         currentAnimeData[anime.mal_id] = anime;
@@ -216,7 +280,6 @@ async function loadProfile(initialLoad = true) {
     await fetchProfileData();
     showView('profile');
     
-    // Jump to preferred tab on first click
     if (initialLoad) {
         switchTab(userSettings.defaultTab);
     }
