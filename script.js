@@ -3,10 +3,8 @@ let mySavedAnime = {};
 let currentSearchPage = 1;
 let isSearching = false;
 
-// Tracker for which seasonal lists have been fetched
 let loadedSeasons = { last: false, this: false, next: false };
 
-// Settings State
 let userSettings = {
     theme: 'cyberpunk',
     sfw: 'true',
@@ -26,7 +24,6 @@ window.onload = async () => {
     loadHomeData();           
 };
 
-// --- SETTINGS LOGIC ---
 function loadSettings() {
     const saved = localStorage.getItem('animeVaultSettings');
     if (saved) {
@@ -52,7 +49,6 @@ function applySettings() {
         loadHomeData();
     }
     
-    // If SFW is toggled, reset the seasonal cache so it re-fetches cleanly next time opened
     loadedSeasons = { last: false, this: false, next: false };
     document.getElementById('results-last-season').innerHTML = '';
     document.getElementById('results-this-season').innerHTML = '';
@@ -66,7 +62,6 @@ function applyThemeColors() {
     }
 }
 
-// --- VIEW & TAB NAVIGATION ---
 function showView(viewId) {
     document.getElementById('home-view').classList.remove('active');
     document.getElementById('profile-view').classList.remove('active');
@@ -83,9 +78,50 @@ function switchTab(tabId, btnElement) {
     document.querySelectorAll('.tab-content').forEach(tab => tab.classList.remove('active'));
     if (btnElement) btnElement.classList.add('active');
     document.getElementById(`tab-${tabId}`).classList.add('active');
+
+    // Update stats whenever a tab is switched
+    updateListStats(tabId);
 }
 
-// --- DATA FETCHING ---
+// --- NEW STATS CALCULATOR ---
+function updateListStats(tabId) {
+    const statusMap = {
+        'watching': 'Watching',
+        'completed': 'Completed',
+        'plan': 'Plan to Watch',
+        'dropped': 'Dropped'
+    };
+    const currentStatus = statusMap[tabId];
+
+    let count = 0;
+    let watchedEps = 0;
+    let totalEps = 0;
+    let scoreSum = 0;
+    let ratedCount = 0;
+
+    Object.values(mySavedAnime).forEach(anime => {
+        if (anime.status === currentStatus) {
+            count++;
+            watchedEps += (anime.episodes_watched || 0);
+            totalEps += (anime.total_episodes || 0);
+
+            if (anime.personal_score && anime.personal_score > 0) {
+                scoreSum += anime.personal_score;
+                ratedCount++;
+            }
+        }
+    });
+
+    const avgScore = ratedCount > 0 ? (scoreSum / ratedCount).toFixed(2) : "0.00";
+
+    const statBar = document.getElementById('list-stats-bar');
+    if (statBar) {
+        document.getElementById('stat-count').innerHTML = `<strong>Total Anime:</strong> ${count}`;
+        document.getElementById('stat-episodes').innerHTML = `<strong>Episodes:</strong> ${watchedEps} / ${totalEps}`;
+        document.getElementById('stat-score').innerHTML = `<strong>Mean Score:</strong> ${avgScore}`;
+    }
+}
+
 async function fetchProfileData() {
     try {
         const res = await fetch('http://127.0.0.1:5000/api/mylist');
@@ -124,22 +160,18 @@ async function loadHomeData() {
     }
 }
 
-// --- SEASONAL COLLAPSIBLE LOGIC ---
 async function toggleSeason(seasonType, headerElement) {
     const grid = document.getElementById(`results-${seasonType}-season`);
 
     if (grid.style.display === 'none' || grid.style.display === '') {
-        // Expand
         grid.style.display = 'grid';
         headerElement.innerHTML = headerElement.innerHTML.replace('▶', '▼');
 
-        // Only fetch if we haven't loaded it yet
         if (!loadedSeasons[seasonType]) {
             await fetchSpecificSeason(seasonType, grid);
             loadedSeasons[seasonType] = true;
         }
     } else {
-        // Collapse
         grid.style.display = 'none';
         headerElement.innerHTML = headerElement.innerHTML.replace('▼', '▶');
     }
@@ -184,7 +216,6 @@ async function fetchSpecificSeason(seasonType, container) {
     }
 }
 
-// --- ADVANCED SEARCH & PAGINATION ---
 async function triggerSearch() {
     currentSearchPage = 1;
     document.getElementById('results-search').innerHTML = ''; 
@@ -275,7 +306,6 @@ function renderCards(animeArray, container, append = false) {
     });
 }
 
-// --- PROFILE LOGIC ---
 async function loadProfile(initialLoad = true) {
     await fetchProfileData();
     showView('profile');
@@ -336,6 +366,13 @@ async function loadProfile(initialLoad = true) {
         else if (anime.status === 'Dropped') document.getElementById('tab-dropped').appendChild(card);
         else document.getElementById('tab-plan').appendChild(card);
     });
+
+    // Ensure the stats are refreshed for the currently active tab after sorting/re-rendering
+    const activeTabElement = document.querySelector('.tab-btn.active');
+    if (activeTabElement) {
+        const activeTabId = activeTabElement.id.replace('tab-btn-', '');
+        updateListStats(activeTabId);
+    }
 }
 
 async function importMAL() {
@@ -488,6 +525,7 @@ async function saveFromModal(mal_id) {
             mySavedAnime[mal_id].status = status;
             mySavedAnime[mal_id].personal_score = score;
             mySavedAnime[mal_id].episodes_watched = epWatched;
+            mySavedAnime[mal_id].total_episodes = totalEps;
             
             if (document.getElementById('profile-view').classList.contains('active')) {
                 loadProfile(false); 
