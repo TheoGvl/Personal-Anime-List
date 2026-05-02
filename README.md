@@ -1,4 +1,4 @@
-# AnimeVault 🚀
+# AnimeVault 
 
 > **DEVELOPMENT NOTICE**
 > **This project is a living application and is currently under active continuous development. The codebase, features, and UI are constantly evolving. Expect frequent updates, new tools, and structural improvements as the site continues to grow!**
