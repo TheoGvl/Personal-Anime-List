@@ -1,4 +1,4 @@
-# AnimeVault
+# AnimeVault 🚀
 
 > **DEVELOPMENT NOTICE**
 > **This project is a living application and is currently under active continuous development. The codebase, features, and UI are constantly evolving. Expect frequent updates, new tools, and structural improvements as the site continues to grow!**
@@ -9,24 +9,25 @@ AnimeVault is a modern, feature-rich Single Page Application (SPA) designed for 
 
 ### Discovery & Search
 * **Dynamic Home Dashboard:** Instantly browse Top Airing, Top Rated, and Most Popular anime of all time.
-* **Seasonal Anime Lazy-Loaded:** Check out what aired last season, what's airing now, and what's coming next. Seasonal lists are hidden by default and only load when clicked, ensuring lightning-fast performance and saving bandwidth.
+* **Collapsible Seasonal Anime:** Check out what aired last season, what's airing now, and what's coming next. Seasonal lists are hidden in an accordion format and only fetch data when clicked, ensuring lightning-fast performance and preventing API rate-limiting.
 * **Advanced Search:** Filter the massive MyAnimeList database by keyword, specific Genres, and Year of release.
 * **Pagination:** Seamlessly browse through hundreds of search results with the "Load More" functionality.
 
 ### Personal Anime Tracker
 * **Detailed List Management:** Organize your anime into Watching, Completed, Plan to Watch, and Dropped categories.
+* **Dynamic Profile Stats:** A real-time statistics bar automatically calculates your Total Anime, Episodes Watched vs. Total, and Mean Score based on the specific tab you are currently viewing.
 * **Comprehensive Tracking:** Log your watched episodes, personal score, times rewatched, start/finish dates, custom tags, and personal comments.
 * **Smart Sorting:** Sort your personal list by Date Added, Personal Score, or alphabetically by Title.
 * **Deep Statistics Modal:** Click on any anime to view its global MAL score, rank, popularity, studios, genres, broadcast time, and full synopsis.
 
-### ⚙️ Customization & Settings
+### Customization & Settings
 * **Theming System:** Personalize your interface with 4 unique color palettes:
   * Cyberpunk (Dark Purple & Pink)
   * Classic MAL (Navy & Light Blue)
   * OLED Dark (True Black & Gold)
   * Forest (Dark Green & Mint)
 * **SFW Filter:** Toggle a Safe-For-Work mode to hide 18+/explicit content from your home feed, searches, and seasonal lists.
-* **Profile Preferences:** Choose which category tab e.g., "Watching" or "Completed" opens by default when you view your profile.
+* **Profile Preferences:** Choose which category tab (e.g., "Watching" or "Completed") opens by default when you view your profile.
 * *All preferences are saved locally in your browser so your experience is always exactly how you left it.*
 
 ### MAL XML Integration
@@ -36,7 +37,7 @@ AnimeVault is a modern, feature-rich Single Page Application (SPA) designed for 
 AnimeVault is constantly improving. Here is a sneak peek at what is planned for future updates:
 * **User Accounts & Authentication:** Support for multiple users with private, secure logins and independent lists.
 * **Database Migrations:** Seamless backend updates utilizing Alembic/Flask-Migrate so you never have to reset your database when new features drop.
-* **Stats Dashboard:** Visual charts and graphs breaking down your watch history, favorite genres, and total days watched.
+* **Global Stats Dashboard:** Visual charts and graphs breaking down your entire watch history, favorite genres, and total days watched.
 * **Smart Recommendations:** Personalized anime suggestions based on your highly-rated shows.
 
 ## Tech Stack
@@ -46,10 +47,9 @@ AnimeVault is constantly improving. Here is a sneak peek at what is planned for 
 * **External APIs:** Jikan REST API v4.
 
 ## How to Run Locally
-
-1. **Install Dependencies:**
+ **Install Dependencies:**
    Ensure you have Python installed, then run the following in your terminal:
-   ```bash
+   ```
    pip install flask flask-cors flask-sqlalchemy
    ```
 Start the Backend Server:
